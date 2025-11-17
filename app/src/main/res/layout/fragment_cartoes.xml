@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Esta tela é para ser IDÊNTICA ao seu anexo "Cartão de crédito".
+Ela terá uma lista com cabeçalhos de mês.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Faturas de Cartão"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:padding="16dp"/>
+
+    <!--
+    Abas para trocar de cartão (PicPay, Banco do Brasil...)
+    Igual aos "chips" do seu anexo.
+    -->
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tabLayoutCartoes"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:tabMode="scrollable" />
+
+    <!--
+    A lista de faturas (com cabeçalho de mês) do cartão selecionado.
+    Exatamente como no seu anexo.
+    -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewFaturas"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:padding="8dp"/>
+
+    <!-- Botão Flutuante para adicionar nova Fatura -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabAddFatura"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end|bottom"
+        android:layout_margin="16dp"
+        android:src="@android:drawable/ic_input_add" />
+
+</LinearLayout>

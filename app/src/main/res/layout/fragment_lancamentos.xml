@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Esta tela é inspirada no seu anexo "Conta-corrente".
+Ela terá abas para os meses e uma lista (RecyclerView).
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Lançamentos"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:padding="16dp"/>
+
+    <!--
+    Abas de Navegação dos Meses (OUT, NOV, DEZ...)
+    Igual ao seu anexo "Conta-corrente"
+    -->
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tabLayoutMeses"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:tabMode="scrollable" />
+
+    <!--
+    A lista de lançamentos (receitas e despesas) do mês selecionado.
+    Usamos RecyclerView por ser mais moderno que ListView.
+    -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewLancamentos"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:padding="8dp"/>
+
+    <!--
+    Botão Flutuante (FAB) para adicionar um novo
+    lançamento (receita ou despesa).
+    -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabAddLancamento"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end|bottom"
+        android:layout_margin="16dp"
+        android:src="@android:drawable/ic_input_add" />
+
+</LinearLayout>

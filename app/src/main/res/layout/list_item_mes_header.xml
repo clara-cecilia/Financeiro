@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Este é o cabeçalho ("Novembro 2025")
+usado na lista de faturas de cartão.
+-->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/textViewHeaderMes"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="16dp"
+    android:text="Novembro 2025"
+    android:textSize="18sp"
+    android:textStyle="bold"
+    android:background="#EEE" /> <!-- (Cor de fundo cinza claro) -->

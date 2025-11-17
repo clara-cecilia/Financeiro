@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Este arquivo (em res/navigation) é o "mapa" que a MainActivity usa
+para saber qual Fragmento carregar para cada item do menu.
+-->
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mobile_navigation"
+    app:startDestination="@+id/navigation_dashboard">
+
+    <!-- Tela de Dashboard -->
+    <fragment
+        android:id="@+id/navigation_dashboard"
+        android:name="com.example.financeiro.ui.dashboard.DashboardFragment"
+        android:label="Dashboard"
+        tools:layout="@layout/fragment_dashboard" />
+
+    <!-- Tela de Lançamentos -->
+    <fragment
+        android:id="@+id/navigation_lancamentos"
+        android:name="com.example.financeiro.ui.lancamentos.LancamentosFragment"
+        android:label="Lançamentos"
+        tools:layout="@layout/fragment_lancamentos" />
+
+    <!-- Tela de Dívidas -->
+    <fragment
+        android:id="@+id/navigation_dividas"
+        android:name="com.example.financeiro.ui.dividas.DividasFragment"
+        android:label="Dívidas"
+        tools:layout="@layout/fragment_dividas" />
+
+    <!-- Tela de Cartões -->
+    <fragment
+        android:id="@+id/navigation_cartoes"
+        android:name="com.example.financeiro.ui.cartoes.CartoesFragment"
+        android:label="Cartões"
+        tools:layout="@layout/fragment_cartoes" />
+
+</navigation>

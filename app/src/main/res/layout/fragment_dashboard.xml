@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Esta é a tela de "Análises".
+Como você ainda não sabe o que quer, comecei com o básico:
+os totais.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Dashboard de Análises"
+        android:textSize="24sp"
+        android:textStyle="bold" />
+
+    <!-- Card Saldo Atual -->
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Saldo Atual (Sobras)"
+                android:textSize="16sp" />
+            <TextView
+                android:id="@+id/textViewSaldoAtual"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="R$ 748,13"
+                android:textSize="28sp"
+                android:textStyle="bold"
+                android:textColor="@color/design_default_color_primary" />
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Outros cards (Receita vs Despesa) -->
+
+</LinearLayout>
