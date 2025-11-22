@@ -18,6 +18,10 @@ public class DividaParcelada {
 
     // "2025-10-10" (Data da primeira parcela, para sabermos os próximos venc.)
     private String dataPrimeiraParcela;
+    private String observacao; // NOVO
+
+    public String getObservacao() { return observacao; }
+    public void setObservacao(String observacao) { this.observacao = observacao; }
 
     // Getters e Setters
     public int getId() { return id; }

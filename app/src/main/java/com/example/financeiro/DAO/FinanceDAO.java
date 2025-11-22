@@ -8,6 +8,7 @@ import androidx.room.Update;
 import java.util.List;
 
 import com.example.financeiro.Entity.DividaParcelada;
+import com.example.financeiro.Entity.Emprestimo;
 import com.example.financeiro.Entity.GastoCartao;
 import com.example.financeiro.Entity.LancamentoFixo;
 import com.example.financeiro.Entity.LancamentoVariavel;
@@ -82,4 +83,22 @@ public interface FinanceDAO {
     List<String> selectAllNomesCartoes();
     @Query("SELECT * FROM gastos_cartao WHERE mesAnoFatura LIKE :mesAnoLike ORDER BY mesAnoFatura ASC")
     List<GastoCartao> selectGastosPorMes(String mesAnoLike);
+
+    // --- EMPRÉSTIMOS (Tela "Devendo") ---
+    @Insert
+    void insertEmprestimo(Emprestimo emprestimo);
+
+    @Update
+    void updateEmprestimo(Emprestimo emprestimo);
+
+    @Delete
+    void deleteEmprestimo(Emprestimo emprestimo);
+
+    // Busca tudo o que eu tenho para RECEBER (Me devem)
+    @Query("SELECT * FROM emprestimos WHERE tipo = 'receber' ORDER BY id DESC")
+    List<Emprestimo> selectA_Receber();
+
+    // Busca tudo o que eu tenho para PAGAR (Eu devo)
+    @Query("SELECT * FROM emprestimos WHERE tipo = 'pagar' ORDER BY id DESC")
+    List<Emprestimo> selectA_Pagar();
 }

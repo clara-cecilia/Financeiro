@@ -37,4 +37,11 @@ para saber qual Fragmento carregar para cada item do menu.
         android:label="Cartões"
         tools:layout="@layout/fragment_cartoes" />
 
+    <!-- Tela de devendo -->
+    <fragment
+        android:id="@+id/navigation_devendo"
+        android:name="com.example.financeiro.ui.devendo.DevendoFragment"
+        android:label="Pessoal"
+        tools:layout="@layout/fragment_devendo" />
+
 </navigation>

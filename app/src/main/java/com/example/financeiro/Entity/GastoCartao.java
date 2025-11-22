@@ -24,8 +24,10 @@ public class GastoCartao {
     }
 
     private String mesAnoFatura;
+    private String observacao; // NOVO
+    public String getObservacao() { return observacao; }
+    public void setObservacao(String observacao) { this.observacao = observacao; }
 
-    // --- Getters e Setters ---
 
     public int getId() {
         return id;

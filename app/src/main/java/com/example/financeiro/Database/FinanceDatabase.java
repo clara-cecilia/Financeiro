@@ -1,23 +1,22 @@
 package com.example.financeiro.Database;
+
 import androidx.room.Database;
 import androidx.room.RoomDatabase;
-
 import com.example.financeiro.DAO.FinanceDAO;
+// Importe todas as entidades
 import com.example.financeiro.Entity.DividaParcelada;
 import com.example.financeiro.Entity.GastoCartao;
 import com.example.financeiro.Entity.LancamentoFixo;
 import com.example.financeiro.Entity.LancamentoVariavel;
+import com.example.financeiro.Entity.Emprestimo; // NOVO
 
-// Este é como seu "Database.java"
-// Note que listamos todas as @Entities aqui
 @Database(entities = {
         GastoCartao.class,
         DividaParcelada.class,
         LancamentoFixo.class,
-        LancamentoVariavel.class
-}, version = 1)
+        LancamentoVariavel.class,
+        Emprestimo.class // NOVO REGISTRO
+}, version = 2) // Mudei versão para 2 (mas vamos desinstalar o app, então tanto faz)
 public abstract class FinanceDatabase extends RoomDatabase {
-
-    // Ele precisa ter um método abstrato para cada DAO
     public abstract FinanceDAO financeDAO();
 }

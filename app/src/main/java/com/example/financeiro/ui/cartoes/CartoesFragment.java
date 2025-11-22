@@ -86,20 +86,14 @@ public class CartoesFragment extends Fragment {
         tabLayoutCartoes.removeAllTabs();
 
         Calendar cal = Calendar.getInstance();
-        // Vamos gerar abas de 2 meses atrás até 12 meses para frente
-        int mesAtual = cal.get(Calendar.MONTH);
-        int anoAtual = cal.get(Calendar.YEAR);
 
-        // Ajusta calendario para 2 meses atrás
-        cal.add(Calendar.MONTH, -2);
+        cal.add(Calendar.MONTH, -3);
 
         SimpleDateFormat formatoAba = new SimpleDateFormat("MMM/yy", new Locale("pt", "BR"));
 
-        for (int i = 0; i < 15; i++) { // Total de 15 abas
-            String titulo = formatoAba.format(cal.getTime()).toUpperCase(); // "DEZ/25"
+        for (int i = 0; i < 7; i++) {
+            String titulo = formatoAba.format(cal.getTime()).toUpperCase();
 
-            // Tag para busca no banco: "%/MM/yyyy"
-            // Nota: Mês no Calendar começa em 0, então somamos 1
             int mes = cal.get(Calendar.MONTH) + 1;
             int ano = cal.get(Calendar.YEAR);
             String tagBusca = String.format(Locale.getDefault(), "%%/%02d/%d", mes, ano);
@@ -107,12 +101,14 @@ public class CartoesFragment extends Fragment {
             TabLayout.Tab tab = tabLayoutCartoes.newTab().setText(titulo).setTag(tagBusca);
             tabLayoutCartoes.addTab(tab);
 
-            // Se for o mês atual (original), seleciona
-            if (mes == mesAtual + 1 && ano == anoAtual) {
-                tab.select();
-            }
+            cal.add(Calendar.MONTH, 1);
+        }
 
-            cal.add(Calendar.MONTH, 1); // Avança 1 mês
+        // 3. Seleciona a aba do mês atual
+        TabLayout.Tab abaAtual = tabLayoutCartoes.getTabAt(3);
+        if (abaAtual != null) {
+            abaAtual.select();
+            buscarFaturas((String) abaAtual.getTag());
         }
     }
 
