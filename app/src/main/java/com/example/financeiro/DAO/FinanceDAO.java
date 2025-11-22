@@ -61,8 +61,8 @@ public interface FinanceDAO {
     @Query("SELECT * FROM dividas_parceladas WHERE parcelasPagas < numeroParcelasTotal ORDER BY dataPrimeiraParcela ASC")
     List<DividaParcelada> selectDividasPendentes();
 
-    @Query("SELECT * FROM dividas_parceladas WHERE parcelasPagas >= numeroParcelasTotal ORDER BY dataPrimeiraParcela DESC")
-    List<DividaParcelada> selectDividasPagas();
+    @Query("SELECT * FROM gastos_cartao WHERE mesAnoFatura LIKE :mesAnoLike ORDER BY mesAnoFatura ASC")
+    List<GastoCartao> selectGastosPorMes(String mesAnoLike); // Ex: "%/12/2025"
 
 
     // --- Gastos de Cartão (Tela "Cartões") ---

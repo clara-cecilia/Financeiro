@@ -8,6 +8,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.room.Room;
 
@@ -19,9 +20,6 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.List;
 
-/**
- * Este Fragmento controla a tela R.layout.fragment_dividas
- */
 public class DividasFragment extends Fragment {
 
     // Referências do Banco de Dados
@@ -32,29 +30,38 @@ public class DividasFragment extends Fragment {
     private RecyclerView recyclerViewDividas;
     private FloatingActionButton fabAddDivida;
 
-    // private DividaParceladaAdapter adapter;
+    // O Adapter que vai organizar a lista
+    private DividasAdapter adapter;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-
         View view = inflater.inflate(R.layout.fragment_dividas, container, false);
 
+        // 1. Inicializa o Banco de Dados
         db = Room.databaseBuilder(getContext(), FinanceDatabase.class, "financeiro.db")
                 .build();
         financeDAO = db.financeDAO();
 
+        // 2. Encontra os componentes da tela
         recyclerViewDividas = view.findViewById(R.id.recyclerViewDividas);
         fabAddDivida = view.findViewById(R.id.fabAddDivida);
 
-        // Configurar o RecyclerView (LayoutManager, Adapter)
-        // ...
+        // 3. Configura o RecyclerView (A parte que faltava!)
+        // Define que será uma lista vertical padrão
+        recyclerViewDividas.setLayoutManager(new LinearLayoutManager(getContext()));
 
+        // Cria e conecta o adapter
+        adapter = new DividasAdapter();
+        recyclerViewDividas.setAdapter(adapter);
+
+        // 4. Ação do Botão Flutuante (Adicionar Dívida)
         fabAddDivida.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Abrir Dialog/Activity para criar nova DividaParcelada
-                Toast.makeText(getContext(), "Clicou em Adicionar Dívida", Toast.LENGTH_SHORT).show();
+                // Abre o diálogo que criamos anteriormente
+                AddDividaDialogFragment dialog = new AddDividaDialogFragment();
+                dialog.show(getParentFragmentManager(), "AddDividaDialog");
             }
         });
 
@@ -62,18 +69,27 @@ public class DividasFragment extends Fragment {
     }
 
     private void buscarDividas() {
+        // Busca os dados em segundo plano (background) para não travar a tela
         new Thread(new Runnable() {
             @Override
             public void run() {
+                // Busca apenas as dívidas que ainda não foram totalmente pagas
                 List<DividaParcelada> listaDividas = financeDAO.selectDividasPendentes();
 
-                // ... Lógica para atualizar o adapter do RecyclerView ...
-
+                // Volta para a tela principal (UI Thread) para mostrar os dados
                 if (getActivity() != null) {
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            // adapter.submitList(listaDividas);
+                            // Entrega a lista para o Adapter exibir
+                            if (listaDividas != null) {
+                                adapter.submitList(listaDividas);
+
+                                // Feedback visual se a lista estiver vazia (opcional, para teste)
+                                if (listaDividas.isEmpty()) {
+                                    // Toast.makeText(getContext(), "Nenhuma dívida pendente.", Toast.LENGTH_SHORT).show();
+                                }
+                            }
                         }
                     });
                 }
@@ -84,7 +100,7 @@ public class DividasFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        // Recarrega os dados toda vez que o usuário voltar para esta tela
+        // Recarrega os dados toda vez que o usuário voltar para esta tela ou fechar o diálogo
         buscarDividas();
     }
 }

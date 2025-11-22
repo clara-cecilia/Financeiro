@@ -8,41 +8,34 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Nova Dívida Parcelada"
+        android:text="Nova Fatura de Cartão"
         android:textSize="20sp"
         android:textStyle="bold"
         android:layout_marginBottom="16dp"/>
 
     <EditText
-        android:id="@+id/editTextDescricaoDivida"
+        android:id="@+id/editTextNomeCartao"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Descrição (Ex: Tênis Novo)"
-        android:inputType="textCapSentences"/>
+        android:hint="Nome do Cartão (Ex: Nubank)"
+        android:inputType="textCapWords"/>
 
     <EditText
-        android:id="@+id/editTextValorTotalDivida"
+        android:id="@+id/editTextValorFatura"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Valor Total (R$)"
+        android:hint="Valor da Fatura (R$)"
         android:inputType="numberDecimal"
         android:layout_marginTop="8dp"/>
 
     <EditText
-        android:id="@+id/editTextQtdParcelas"
+        android:id="@+id/editTextDataVencimento"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Número de Parcelas (Ex: 10)"
-        android:inputType="number"
-        android:layout_marginTop="8dp"/>
-
-    <EditText
-        android:id="@+id/editTextDataPrimeiraParcela"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Data 1ª Parcela (aaaa-mm-dd)"
+        android:hint="Vencimento (dd/mm/aaaa)"
         android:inputType="date"
         android:layout_marginTop="8dp"/>
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -50,7 +43,7 @@
         android:layout_marginTop="24dp">
 
         <Button
-            android:id="@+id/buttonCancelarDivida"
+            android:id="@+id/buttonCancelarFatura"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -58,7 +51,7 @@
             style="?android:attr/buttonBarButtonStyle" />
 
         <Button
-            android:id="@+id/buttonSalvarDivida"
+            android:id="@+id/buttonSalvarFatura"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
