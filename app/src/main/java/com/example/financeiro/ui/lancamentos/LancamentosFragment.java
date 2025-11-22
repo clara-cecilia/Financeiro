@@ -142,7 +142,7 @@ public class LancamentosFragment extends Fragment {
         // 2. Gera 10 abas no total:
         //    3 passadas + 1 atual + 3 futuras = 7 abas
         for (int i = 0; i < 7; i++) {
-            String titulo = formatoTitulo.format(cal.getTime()).toUpperCase(); // Ex: MAI/25
+            String titulo = formatoTitulo.format(cal.getTime()).toUpperCase();
 
             int mes = cal.get(Calendar.MONTH) + 1;
             int ano = cal.get(Calendar.YEAR);
