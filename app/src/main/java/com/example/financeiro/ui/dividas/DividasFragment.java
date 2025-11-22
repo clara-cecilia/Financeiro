@@ -1,5 +1,6 @@
 package com.example.financeiro.ui.dividas;
 
+import android.app.AlertDialog;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -22,15 +23,10 @@ import java.util.List;
 
 public class DividasFragment extends Fragment {
 
-    // Referências do Banco de Dados
     private FinanceDatabase db;
     private FinanceDAO financeDAO;
-
-    // Referências da UI
     private RecyclerView recyclerViewDividas;
     private FloatingActionButton fabAddDivida;
-
-    // O Adapter que vai organizar a lista
     private DividasAdapter adapter;
 
     @Nullable
@@ -38,61 +34,113 @@ public class DividasFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_dividas, container, false);
 
-        // 1. Inicializa o Banco de Dados
-        db = Room.databaseBuilder(getContext(), FinanceDatabase.class, "financeiro.db")
-                .build();
+        db = Room.databaseBuilder(getContext(), FinanceDatabase.class, "financeiro.db").build();
         financeDAO = db.financeDAO();
 
-        // 2. Encontra os componentes da tela
         recyclerViewDividas = view.findViewById(R.id.recyclerViewDividas);
         fabAddDivida = view.findViewById(R.id.fabAddDivida);
 
-        // 3. Configura o RecyclerView (A parte que faltava!)
-        // Define que será uma lista vertical padrão
         recyclerViewDividas.setLayoutManager(new LinearLayoutManager(getContext()));
-
-        // Cria e conecta o adapter
         adapter = new DividasAdapter();
+
+        // CLIQUE LONGO
+        adapter.setOnItemLongClickListener(new DividasAdapter.OnItemLongClickListener() {
+            @Override
+            public void onItemLongClick(DividaParcelada divida) {
+                mostrarOpcoesDivida(divida);
+            }
+        });
+
         recyclerViewDividas.setAdapter(adapter);
 
-        // 4. Ação do Botão Flutuante (Adicionar Dívida)
-        fabAddDivida.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Abre o diálogo que criamos anteriormente
-                AddDividaDialogFragment dialog = new AddDividaDialogFragment();
-                dialog.show(getParentFragmentManager(), "AddDividaDialog");
-            }
+        fabAddDivida.setOnClickListener(v -> {
+            AddDividaDialogFragment dialog = new AddDividaDialogFragment();
+            dialog.show(getParentFragmentManager(), "AddDividaDialog");
         });
 
         return view;
     }
 
-    private void buscarDividas() {
-        // Busca os dados em segundo plano (background) para não travar a tela
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                // Busca apenas as dívidas que ainda não foram totalmente pagas
-                List<DividaParcelada> listaDividas = financeDAO.selectDividasPendentes();
+    private void mostrarOpcoesDivida(DividaParcelada divida) {
+        // Opções dinâmicas
+        String opcaoPagar = "Pagar Próxima Parcela (" + (divida.getParcelasPagas() + 1) + "/" + divida.getNumeroParcelasTotal() + ")";
 
-                // Volta para a tela principal (UI Thread) para mostrar os dados
-                if (getActivity() != null) {
-                    getActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            // Entrega a lista para o Adapter exibir
-                            if (listaDividas != null) {
-                                adapter.submitList(listaDividas);
+        String[] opcoes = {opcaoPagar, "Editar", "Excluir"};
 
-                                // Feedback visual se a lista estiver vazia (opcional, para teste)
-                                if (listaDividas.isEmpty()) {
-                                    // Toast.makeText(getContext(), "Nenhuma dívida pendente.", Toast.LENGTH_SHORT).show();
-                                }
-                            }
+        new AlertDialog.Builder(getContext())
+                .setTitle(divida.getDescricao())
+                .setItems(opcoes, (dialog, which) -> {
+                    switch (which) {
+                        case 0: // Pagar Parcela
+                            pagarParcela(divida);
+                            break;
+                        case 1: // Editar
+                            editarDivida(divida);
+                            break;
+                        case 2: // Excluir
+                            excluirDivida(divida);
+                            break;
+                    }
+                })
+                .show();
+    }
+
+    private void pagarParcela(DividaParcelada divida) {
+        if (divida.getParcelasPagas() >= divida.getNumeroParcelasTotal()) {
+            Toast.makeText(getContext(), "Esta dívida já está paga!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Incrementa parcelas pagas
+        divida.setParcelasPagas(divida.getParcelasPagas() + 1);
+
+        new Thread(() -> {
+            financeDAO.updateDividaParcelada(divida);
+
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(() -> {
+                    Toast.makeText(getContext(), "Parcela Paga!", Toast.LENGTH_SHORT).show();
+                    buscarDividas(); // Atualiza a lista
+                });
+            }
+        }).start();
+    }
+
+    private void editarDivida(DividaParcelada divida) {
+        AddDividaDialogFragment dialog = new AddDividaDialogFragment();
+        dialog.setDividaEditar(divida);
+        dialog.show(getParentFragmentManager(), "EditDividaDialog");
+    }
+
+    private void excluirDivida(DividaParcelada divida) {
+        new AlertDialog.Builder(getContext())
+                .setTitle("Excluir Dívida")
+                .setMessage("Tem certeza? Isso apagará todo o histórico desta dívida.")
+                .setPositiveButton("Sim", (dialog, which) -> {
+                    new Thread(() -> {
+                        financeDAO.deleteDividaParcelada(divida);
+
+                        if (getActivity() != null) {
+                            getActivity().runOnUiThread(() -> {
+                                Toast.makeText(getContext(), "Dívida excluída", Toast.LENGTH_SHORT).show();
+                                buscarDividas();
+                            });
                         }
-                    });
-                }
+                    }).start();
+                })
+                .setNegativeButton("Não", null)
+                .show();
+    }
+
+    private void buscarDividas() {
+        new Thread(() -> {
+            // Busca apenas as pendentes. Se você pagar a última parcela, ela sumirá da lista.
+            List<DividaParcelada> listaDividas = financeDAO.selectDividasPendentes();
+
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(() -> {
+                    adapter.submitList(listaDividas);
+                });
             }
         }).start();
     }
@@ -100,7 +148,6 @@ public class DividasFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        // Recarrega os dados toda vez que o usuário voltar para esta tela ou fechar o diálogo
         buscarDividas();
     }
 }

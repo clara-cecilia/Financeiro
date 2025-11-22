@@ -15,27 +15,26 @@ import com.example.financeiro.R;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Este Adapter gerencia a exibição de objetos DividaParcelada
- * dentro do RecyclerView da tela de Dívidas.
- */
 public class DividasAdapter extends RecyclerView.Adapter<DividasAdapter.DividaViewHolder> {
 
     private List<DividaParcelada> dividas = new ArrayList<>();
     private Context context;
+    private OnItemLongClickListener listener;
 
-    /**
-     * Passo 1: O ViewHolder (O "Molde" do Item)
-     * Esta classe interna segura as referências para os componentes
-     * de layout do seu 'list_item_divida_parcelada.xml'.
-     */
+    public interface OnItemLongClickListener {
+        void onItemLongClick(DividaParcelada divida);
+    }
+
+    public void setOnItemLongClickListener(OnItemLongClickListener listener) {
+        this.listener = listener;
+    }
+
     public static class DividaViewHolder extends RecyclerView.ViewHolder {
         TextView textViewDescricaoDivida, textViewValorParcela, textViewStatusParcela, textViewValorTotal;
         ProgressBar progressBarDivida;
 
         public DividaViewHolder(@NonNull View itemView) {
             super(itemView);
-            // Encontra os componentes do layout do item
             textViewDescricaoDivida = itemView.findViewById(R.id.textViewDescricaoDivida);
             textViewValorParcela = itemView.findViewById(R.id.textViewValorParcela);
             textViewStatusParcela = itemView.findViewById(R.id.textViewStatusParcela);
@@ -44,9 +43,6 @@ public class DividasAdapter extends RecyclerView.Adapter<DividasAdapter.DividaVi
         }
     }
 
-    /**
-     * Passo 2: onCreateViewHolder
-     */
     @NonNull
     @Override
     public DividaViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -56,10 +52,6 @@ public class DividasAdapter extends RecyclerView.Adapter<DividasAdapter.DividaVi
         return new DividaViewHolder(view);
     }
 
-    /**
-     * Passo 3: onBindViewHolder
-     * Pega o objeto DividaParcelada e o insere no layout.
-     */
     @Override
     public void onBindViewHolder(@NonNull DividaViewHolder holder, int position) {
         DividaParcelada divida = dividas.get(position);
@@ -69,24 +61,28 @@ public class DividasAdapter extends RecyclerView.Adapter<DividasAdapter.DividaVi
         holder.textViewDescricaoDivida.setText(divida.getDescricao());
         holder.textViewValorParcela.setText(String.format("R$ %.2f", valorParcela));
         holder.textViewValorTotal.setText(String.format("Total: R$ %.2f", divida.getValorTotal()));
+
+        // Ex: "Parcela 3 de 12"
         holder.textViewStatusParcela.setText(String.format("Parcela %d de %d", divida.getParcelasPagas(), divida.getNumeroParcelasTotal()));
 
-        // Configura a ProgressBar
+        // Configura a Barra de Progresso
         holder.progressBarDivida.setMax(divida.getNumeroParcelasTotal());
         holder.progressBarDivida.setProgress(divida.getParcelasPagas());
+
+        // Clique Longo
+        holder.itemView.setOnLongClickListener(v -> {
+            if (listener != null) {
+                listener.onItemLongClick(divida);
+            }
+            return true;
+        });
     }
 
-    /**
-     * Passo 4: getItemCount
-     */
     @Override
     public int getItemCount() {
         return dividas.size();
     }
 
-    /**
-     * Passo 5: submitList (Método Auxiliar)
-     */
     public void submitList(List<DividaParcelada> novaLista) {
         this.dividas = novaLista;
         notifyDataSetChanged();
