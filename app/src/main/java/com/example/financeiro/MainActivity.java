@@ -30,9 +30,5 @@ public class MainActivity extends AppCompatActivity {
         // Isso faz com que clicar em um ícone na barra (ex: "Dívidas")
         // automaticamente carregue o fragmento correto no contêiner.
         NavigationUI.setupWithNavController(navView, navController);
-
-        // Toda a lógica de UI (botões, listas) e banco de dados
-        // foi movida para os seus respectivos Fragmentos.
-
     }
 }
