@@ -1,5 +1,6 @@
 package com.example.financeiro.ui.lancamentos;
 
+import android.app.DatePickerDialog;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,80 +17,113 @@ import com.example.financeiro.DAO.FinanceDAO;
 import com.example.financeiro.Database.FinanceDatabase;
 import com.example.financeiro.Entity.LancamentoVariavel;
 import com.example.financeiro.R;
+import java.util.Calendar;
+import java.util.Locale;
 
 public class AddLancamentoDialogFragment extends DialogFragment {
 
     private EditText editTextDescricao, editTextValor, editTextData;
-    private RadioButton radioReceita;
+    private RadioButton radioReceita, radioDespesa;
     private Button buttonCancelar, buttonSalvar;
 
     private FinanceDatabase db;
     private FinanceDAO financeDAO;
 
+    // Variável para controlar edição
+    private LancamentoVariavel lancamentoEditar;
+
+    public void setLancamentoEditar(LancamentoVariavel lancamento) {
+        this.lancamentoEditar = lancamento;
+    }
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        // Infla o layout do dialog
         View view = inflater.inflate(R.layout.dialog_add_lancamento, container, false);
 
-        // Inicializa o DB (assim como no Fragment)
-        db = Room.databaseBuilder(getContext(), FinanceDatabase.class, "financeiro.db")
-                .build();
+        db = Room.databaseBuilder(getContext(), FinanceDatabase.class, "financeiro.db").build();
         financeDAO = db.financeDAO();
 
-        // Encontra os componentes do layout
         editTextDescricao = view.findViewById(R.id.editTextDescricaoDialog);
         editTextValor = view.findViewById(R.id.editTextValorDialog);
         editTextData = view.findViewById(R.id.editTextDataDialog);
         radioReceita = view.findViewById(R.id.radioReceitaDialog);
+        radioDespesa = view.findViewById(R.id.radioDespesaDialog);
         buttonCancelar = view.findViewById(R.id.buttonCancelar);
         buttonSalvar = view.findViewById(R.id.buttonSalvar);
 
-        // Define as ações dos botões
-        buttonCancelar.setOnClickListener(v -> dismiss()); // Fecha o dialog
+        // Configurar Calendário
+        editTextData.setFocusable(false);
+        editTextData.setClickable(true);
+        editTextData.setOnClickListener(v -> abrirCalendario());
 
-        buttonSalvar.setOnClickListener(v -> salvarNovoLancamento());
+        // Se for EDIÇÃO, preenche os campos
+        if (lancamentoEditar != null) {
+            editTextDescricao.setText(lancamentoEditar.getDescricao());
+            editTextValor.setText(String.valueOf(lancamentoEditar.getValor()));
+            editTextData.setText(lancamentoEditar.getData());
+
+            if ("receita".equals(lancamentoEditar.getTipo())) {
+                radioReceita.setChecked(true);
+            } else {
+                radioDespesa.setChecked(true);
+            }
+            buttonSalvar.setText("Atualizar");
+        }
+
+        buttonCancelar.setOnClickListener(v -> dismiss());
+        buttonSalvar.setOnClickListener(v -> salvarOuAtualizar());
 
         return view;
     }
 
-    private void salvarNovoLancamento() {
+    private void abrirCalendario() {
+        Calendar cal = Calendar.getInstance();
+        DatePickerDialog datePicker = new DatePickerDialog(getContext(),
+                (view, year, month, dayOfMonth) -> {
+                    String dataFormatada = String.format(Locale.getDefault(), "%02d/%02d/%d", dayOfMonth, month + 1, year);
+                    editTextData.setText(dataFormatada);
+                },
+                cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH));
+        datePicker.show();
+    }
+
+    private void salvarOuAtualizar() {
         String descricao = editTextDescricao.getText().toString();
         String valorStr = editTextValor.getText().toString();
         String data = editTextData.getText().toString();
 
-        // Validação simples
         if (descricao.isEmpty() || valorStr.isEmpty() || data.isEmpty()) {
             Toast.makeText(getContext(), "Preencha todos os campos!", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        double valor = Double.parseDouble(valorStr);
+        double valor = Double.parseDouble(valorStr.replace(",", "."));
         String tipo = radioReceita.isChecked() ? "receita" : "despesa";
 
-        // Cria o novo objeto
-        LancamentoVariavel novoLancamento = new LancamentoVariavel();
-        novoLancamento.setDescricao(descricao);
-        novoLancamento.setValor(valor);
-        novoLancamento.setData(data); // "dd/mm/aaaa"
-        novoLancamento.setTipo(tipo);
+        new Thread(() -> {
+            if (lancamentoEditar == null) {
+                // NOVO
+                LancamentoVariavel novo = new LancamentoVariavel();
+                novo.setDescricao(descricao);
+                novo.setValor(valor);
+                novo.setData(data);
+                novo.setTipo(tipo);
+                financeDAO.insertLancamentoVariavel(novo);
+            } else {
+                // ATUALIZAR
+                lancamentoEditar.setDescricao(descricao);
+                lancamentoEditar.setValor(valor);
+                lancamentoEditar.setData(data);
+                lancamentoEditar.setTipo(tipo);
+                financeDAO.updateLancamentoVariavel(lancamentoEditar);
+            }
 
-        // Salva no banco em uma thread separada
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                financeDAO.insertLancamentoVariavel(novoLancamento);
-
-                // Volta para a UI Thread para mostrar o Toast e fechar
-                if (getActivity() != null) {
-                    getActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            Toast.makeText(getContext(), "Salvo com sucesso!", Toast.LENGTH_SHORT).show();
-                            dismiss(); // Fecha o dialog
-                        }
-                    });
-                }
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(() -> {
+                    Toast.makeText(getContext(), "Salvo com sucesso!", Toast.LENGTH_SHORT).show();
+                    dismiss();
+                });
             }
         }).start();
     }
