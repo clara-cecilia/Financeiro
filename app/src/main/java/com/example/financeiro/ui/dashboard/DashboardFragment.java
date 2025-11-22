@@ -26,7 +26,7 @@ public class DashboardFragment extends Fragment {
     private FinanceDAO financeDAO;
 
     private TabLayout tabLayoutDashboard;
-    private TextView textViewSaldo, textViewTotalDividas, textViewTotalFaturas, textViewTituloResumo;
+    private TextView textViewSaldo, textViewTotalDividas, textViewTotalFaturas, textViewTituloResumo, textViewInvestimento;
 
     @Nullable
     @Override
@@ -42,6 +42,7 @@ public class DashboardFragment extends Fragment {
         textViewTotalDividas = view.findViewById(R.id.textViewTotalDividas);
         textViewTotalFaturas = view.findViewById(R.id.textViewTotalFaturas);
         textViewTituloResumo = view.findViewById(R.id.textViewTituloResumo);
+        textViewInvestimento = view.findViewById(R.id.textViewInvestimento); // NOVO
 
         // Configurar as abas e selecionar o mês atual
         configurarFiltrosDeTempo();
@@ -50,7 +51,7 @@ public class DashboardFragment extends Fragment {
         tabLayoutDashboard.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
-                String filtro = (String) tab.getTag(); // Ex: "%/11/2025" ou "%/2025"
+                String filtro = (String) tab.getTag();
                 String texto = tab.getText().toString();
 
                 textViewTituloResumo.setText("Resumo: " + texto);
@@ -68,30 +69,26 @@ public class DashboardFragment extends Fragment {
 
         Calendar cal = Calendar.getInstance();
         int anoAtual = cal.get(Calendar.YEAR);
-        int mesAtualIndex = cal.get(Calendar.MONTH); // Jan = 0, Fev = 1... Nov = 10
+        int mesAtualIndex = cal.get(Calendar.MONTH);
 
-        // 1. CRIAR ABA "TOTAL ANO" (Primeira posição)
+        // 1. CRIAR ABA "TOTAL ANO"
         TabLayout.Tab tabAno = tabLayoutDashboard.newTab();
         tabAno.setText("TOTAL " + anoAtual);
-        tabAno.setTag("%/" + anoAtual); // Busca tudo que tenha o ano (ex: %/2025)
+        tabAno.setTag("%/" + anoAtual);
         tabLayoutDashboard.addTab(tabAno);
 
-        // 2. CRIAR ABAS DOS MESES (Jan a Dez)
+        // 2. CRIAR ABAS DOS MESES
         String[] meses = {"JAN", "FEV", "MAR", "ABR", "MAI", "JUN", "JUL", "AGO", "SET", "OUT", "NOV", "DEZ"};
 
         for (int i = 0; i < 12; i++) {
             TabLayout.Tab tabMes = tabLayoutDashboard.newTab();
             tabMes.setText(meses[i]);
 
-            // Cria a Tag de busca: "%/01/2025", "%/02/2025"...
-            // O 'i + 1' converte o índice 0 em mês 1
             String tag = String.format(Locale.getDefault(), "%%/%02d/%d", (i + 1), anoAtual);
             tabMes.setTag(tag);
 
             tabLayoutDashboard.addTab(tabMes);
 
-            // LÓGICA DO DEFAULT:
-            // Se o índice do loop (i) for igual ao mês atual do sistema, seleciona essa aba.
             if (i == mesAtualIndex) {
                 tabMes.select();
             }
@@ -100,23 +97,22 @@ public class DashboardFragment extends Fragment {
 
     private void calcularResumo(String filtroDataLike) {
         new Thread(() -> {
-            // 1. Calcular Saldo (Receitas - Despesas - Faturas Pagas) usando o FILTRO da aba
+            // 1. Calcular Saldo
             Double receitas = financeDAO.getReceitasPorMes(filtroDataLike);
             Double despesas = financeDAO.getDespesasPorMes(filtroDataLike);
             Double faturasPagas = financeDAO.getFaturasPagasPorMes(filtroDataLike);
 
-            // Tratar valores nulos
             if (receitas == null) receitas = 0.0;
             if (despesas == null) despesas = 0.0;
             if (faturasPagas == null) faturasPagas = 0.0;
 
             double saldo = receitas - despesas - faturasPagas;
 
-            // 2. Faturas em Aberto (Compromissos do período selecionado)
+            // 2. Faturas em Aberto
             Double faturasAbertas = financeDAO.getFaturasAbertasPorMes(filtroDataLike);
             if (faturasAbertas == null) faturasAbertas = 0.0;
 
-            // 3. Dívidas Pendentes (Sempre mostra o total geral que falta pagar na vida)
+            // 3. Dívidas Pendentes
             List<DividaParcelada> dividas = financeDAO.selectDividasPendentes();
             double totalDividasPendentes = 0.0;
             for (DividaParcelada d : dividas) {
@@ -125,7 +121,11 @@ public class DashboardFragment extends Fragment {
                 totalDividasPendentes += (valorParcela * parcelasRestantes);
             }
 
-            // Atualizar a Tela na Thread Principal
+            // 4. Calcular Sugestão de Investimento (5% das sobras)
+            // Se o saldo for negativo ou zero, sugerimos 0.00
+            double sugestaoInvestimento = (saldo > 0) ? saldo * 0.05 : 0.0;
+
+            // Atualizar a Tela
             double finalFaturasAbertas = faturasAbertas;
             double finalDividas = totalDividasPendentes;
 
@@ -133,7 +133,6 @@ public class DashboardFragment extends Fragment {
                 getActivity().runOnUiThread(() -> {
                     textViewSaldo.setText(String.format("R$ %.2f", saldo));
 
-                    // Cor do saldo: Verde (positivo) ou Vermelho (negativo)
                     if (saldo >= 0) {
                         textViewSaldo.setTextColor(getResources().getColor(android.R.color.holo_green_dark));
                     } else {
@@ -142,6 +141,9 @@ public class DashboardFragment extends Fragment {
 
                     textViewTotalFaturas.setText(String.format("R$ %.2f", finalFaturasAbertas));
                     textViewTotalDividas.setText(String.format("R$ %.2f", finalDividas));
+
+                    // Atualiza o novo campo de investimento
+                    textViewInvestimento.setText(String.format("R$ %.2f", sugestaoInvestimento));
                 });
             }
         }).start();
@@ -150,7 +152,6 @@ public class DashboardFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        // Recarrega os dados da aba que estiver selecionada no momento
         if (tabLayoutDashboard.getTabCount() > 0) {
             TabLayout.Tab abaSelecionada = tabLayoutDashboard.getTabAt(tabLayoutDashboard.getSelectedTabPosition());
             if (abaSelecionada != null) {
