@@ -34,6 +34,15 @@
         android:layout_height="wrap_content"
         android:hint="Data (dd/mm/aaaa)"
         android:inputType="date"
+        android:focusable="false"
+        android:layout_marginTop="8dp"/>
+
+    <EditText
+        android:id="@+id/editTextObsLancamento"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Observação (Opcional)"
+        android:inputType="textCapSentences"
         android:layout_marginTop="8dp"/>
 
     <RadioGroup

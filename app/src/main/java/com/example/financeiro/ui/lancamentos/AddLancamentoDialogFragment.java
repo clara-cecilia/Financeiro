@@ -22,14 +22,12 @@ import java.util.Locale;
 
 public class AddLancamentoDialogFragment extends DialogFragment {
 
-    private EditText editTextDescricao, editTextValor, editTextData;
+    private EditText editTextDescricao, editTextValor, editTextData, editTextObs; // Adicionado editTextObs
     private RadioButton radioReceita, radioDespesa;
     private Button buttonCancelar, buttonSalvar;
 
     private FinanceDatabase db;
     private FinanceDAO financeDAO;
-
-    // Variável para controlar edição
     private LancamentoVariavel lancamentoEditar;
 
     public void setLancamentoEditar(LancamentoVariavel lancamento) {
@@ -47,21 +45,22 @@ public class AddLancamentoDialogFragment extends DialogFragment {
         editTextDescricao = view.findViewById(R.id.editTextDescricaoDialog);
         editTextValor = view.findViewById(R.id.editTextValorDialog);
         editTextData = view.findViewById(R.id.editTextDataDialog);
+        editTextObs = view.findViewById(R.id.editTextObsLancamento); // Vincular ID
+
         radioReceita = view.findViewById(R.id.radioReceitaDialog);
         radioDespesa = view.findViewById(R.id.radioDespesaDialog);
         buttonCancelar = view.findViewById(R.id.buttonCancelar);
         buttonSalvar = view.findViewById(R.id.buttonSalvar);
 
-        // Configurar Calendário
         editTextData.setFocusable(false);
         editTextData.setClickable(true);
         editTextData.setOnClickListener(v -> abrirCalendario());
 
-        // Se for EDIÇÃO, preenche os campos
         if (lancamentoEditar != null) {
             editTextDescricao.setText(lancamentoEditar.getDescricao());
             editTextValor.setText(String.valueOf(lancamentoEditar.getValor()));
             editTextData.setText(lancamentoEditar.getData());
+            editTextObs.setText(lancamentoEditar.getObservacao()); // Preencher se for edição
 
             if ("receita".equals(lancamentoEditar.getTipo())) {
                 radioReceita.setChecked(true);
@@ -79,22 +78,20 @@ public class AddLancamentoDialogFragment extends DialogFragment {
 
     private void abrirCalendario() {
         Calendar cal = Calendar.getInstance();
-        DatePickerDialog datePicker = new DatePickerDialog(getContext(),
-                (view, year, month, dayOfMonth) -> {
-                    String dataFormatada = String.format(Locale.getDefault(), "%02d/%02d/%d", dayOfMonth, month + 1, year);
-                    editTextData.setText(dataFormatada);
-                },
-                cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH));
-        datePicker.show();
+        new DatePickerDialog(getContext(), (view, year, month, dayOfMonth) -> {
+            String dataF = String.format(Locale.getDefault(), "%02d/%02d/%d", dayOfMonth, month+1, year);
+            editTextData.setText(dataF);
+        }, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)).show();
     }
 
     private void salvarOuAtualizar() {
         String descricao = editTextDescricao.getText().toString();
         String valorStr = editTextValor.getText().toString();
         String data = editTextData.getText().toString();
+        String obs = editTextObs.getText().toString(); // Pegar texto
 
         if (descricao.isEmpty() || valorStr.isEmpty() || data.isEmpty()) {
-            Toast.makeText(getContext(), "Preencha todos os campos!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Preencha os campos obrigatórios", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -103,25 +100,25 @@ public class AddLancamentoDialogFragment extends DialogFragment {
 
         new Thread(() -> {
             if (lancamentoEditar == null) {
-                // NOVO
                 LancamentoVariavel novo = new LancamentoVariavel();
                 novo.setDescricao(descricao);
                 novo.setValor(valor);
                 novo.setData(data);
                 novo.setTipo(tipo);
+                novo.setObservacao(obs); // Salvar novo
                 financeDAO.insertLancamentoVariavel(novo);
             } else {
-                // ATUALIZAR
                 lancamentoEditar.setDescricao(descricao);
                 lancamentoEditar.setValor(valor);
                 lancamentoEditar.setData(data);
                 lancamentoEditar.setTipo(tipo);
+                lancamentoEditar.setObservacao(obs); // Atualizar existente
                 financeDAO.updateLancamentoVariavel(lancamentoEditar);
             }
 
             if (getActivity() != null) {
                 getActivity().runOnUiThread(() -> {
-                    Toast.makeText(getContext(), "Salvo com sucesso!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), "Salvo!", Toast.LENGTH_SHORT).show();
                     dismiss();
                 });
             }
