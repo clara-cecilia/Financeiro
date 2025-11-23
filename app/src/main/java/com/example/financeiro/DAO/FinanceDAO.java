@@ -101,4 +101,11 @@ public interface FinanceDAO {
     // Busca tudo o que eu tenho para PAGAR (Eu devo)
     @Query("SELECT * FROM emprestimos WHERE tipo = 'pagar' ORDER BY id DESC")
     List<Emprestimo> selectA_Pagar();
+
+    // --- SOMAS PARA O DASHBOARD (Módulo Pessoal) ---
+    @Query("SELECT SUM(valor) FROM emprestimos WHERE tipo = 'receber'")
+    Double getTotalAReceber();
+
+    @Query("SELECT SUM(valor) FROM emprestimos WHERE tipo = 'pagar'")
+    Double getTotalAPagar();
 }
